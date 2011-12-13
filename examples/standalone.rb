@@ -1,9 +1,12 @@
 # Fill in your own spec for #establish_connection.
 
+require "bundler"
+Bundler.setup
 require "eventmachine"
 require "fiber"
 require "active_record"
 require "benchmark"
+require "logger"
 
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 ActiveRecord::Base.establish_connection :adapter      => "em_postgresql",
