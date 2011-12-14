@@ -9,33 +9,25 @@ module EM
     class FiberedPostgresConnection < PGconn
 
       module Watcher
-        def initialize(client, deferable)
+        def initialize(client, deferrable)
           @client = client
-          @deferable = deferable
+          @deferrable = deferrable
         end
 
         def notify_readable
+          detach
           begin
-            detach
-
             @client.consume_input while @client.is_busy
-
-            res, data = 0, []
-            while res != nil
-              res = @client.get_result
-              data << res unless res.nil?
-            end
-
-            @deferable.succeed(data.last)
+            @deferrable.succeed(@client.get_last_result)
           rescue Exception => e
-            @deferable.fail(e)
+            @deferrable.fail(e)
           end
         end
       end
 
-      def async_exec(sql)
+      def async_exec(sql, *opts)
         if ::EM.reactor_running?
-          send_query sql
+          send_query(sql, *opts)
           deferrable = ::EM::DefaultDeferrable.new
           ::EM.watch(self.socket, Watcher, self, deferrable).notify_readable = true
           fiber = Fiber.current
