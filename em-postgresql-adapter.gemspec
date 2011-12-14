@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.summary  = "PostgreSQL fiber-based ActiveRecord 3.1 connection adapter for Ruby 1.9"
   s.email    = "ruben@leftbee.net"
   s.homepage = "http://github.com/leftbee/em-postgresql-adapter"
-  s.authors  = ["Ruben Nine", "Christopher J. Bottaro", "Bruce Chu"]
+  s.authors  = ["Ruben Nine", "Christopher J. Bottaro", "Bruce Chu", "Anton Orel", "Laust Rud Jacobsen"]
   s.files    = [
     "em-postgresql-adapter.gemspec",
     "lib/active_record/connection_adapters/em_postgresql_adapter.rb",
