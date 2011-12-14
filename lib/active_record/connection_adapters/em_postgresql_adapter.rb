@@ -10,9 +10,7 @@ module ActiveRecord
   module ConnectionAdapters
     class EMPostgreSQLAdapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
       # Returns 'FiberedPostgreSQL' as adapter name for identification purposes.
-      def adapter_name
-        'EMPostgreSQL'
-      end
+      ADAPTER_NAME = 'EMPostgreSQL'
 
       def connect
         @connection = ::EM::DB::FiberedPostgresConnection.connect(*@connection_parameters[1..(@connection_parameters.length-1)])
