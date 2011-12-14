@@ -21,6 +21,7 @@ module ActiveRecord
         PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
         configure_connection
+        @connection.use_fibers!
       end
 
       # Close then reopen the connection.

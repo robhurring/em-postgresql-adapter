@@ -24,24 +24,43 @@ module EM
           end
         end
       end
+      
+      attr_accessor :use_fibers # decide whether fibers should be used
+
+      def initialize(*args)
+        self.use_fibers = false # default use_fibers to false
+        super(*args)
+      end
+      
+      def use_fibers! # convenience method
+        self.use_fibers = true
+      end
+      
+      def can_use_fibers?
+        ::EM.reactor_running? && self.use_fibers
+      end
+      
+      def send_query_using_fibers(sql, *opts)
+        send_query(sql, *opts)
+        deferrable = ::EM::DefaultDeferrable.new
+        ::EM.watch(self.socket, Watcher, self, deferrable).notify_readable = true
+        fiber = Fiber.current
+        deferrable.callback do |result|
+          fiber.resume(result)
+        end
+        deferrable.errback do |err|
+          fiber.resume(err)
+        end
+        Fiber.yield.tap do |result|
+          raise result if result.is_a?(Exception)
+        end
+      end
 
       def async_exec(sql, *opts)
-        if ::EM.reactor_running?
-          send_query(sql, *opts)
-          deferrable = ::EM::DefaultDeferrable.new
-          ::EM.watch(self.socket, Watcher, self, deferrable).notify_readable = true
-          fiber = Fiber.current
-          deferrable.callback do |result|
-            fiber.resume(result)
-          end
-          deferrable.errback do |err|
-            fiber.resume(err)
-          end
-          Fiber.yield.tap do |result|
-            raise result if result.is_a?(Exception)
-          end
+        if can_use_fibers?
+          send_query_using_fibers(sql, *opts)
         else
-          super(sql)
+          super(sql, *opts)
         end
       end
       alias_method :async_query, :async_exec
