@@ -8,6 +8,8 @@ module EM
     # ActiveRecord 3.1 calls PGConn#async_exec and also PGConn#send_query_prepared (the latter hasn't been patched here yet -- see below)
     class FiberedPostgresConnection < PGconn
 
+      @@fibers_lock = Mutex.new
+
       module Watcher
         def initialize(client, deferrable)
           @client = client
@@ -28,12 +30,17 @@ module EM
       attr_accessor :use_fibers # decide whether fibers should be used
 
       def initialize(*args)
-        self.use_fibers = false # default use_fibers to false
+        self.use_fibers = true # default to true
         super(*args)
       end
       
-      def use_fibers! # convenience method
-        self.use_fibers = true
+      # Bypass fibers for the duration of the block (for those cases where asynchronous db requests are not desired)
+      def bypass_fibers(&block)
+        @@fibers_lock.synchronize do # just in case this code is ever used in a multithreaded (non fibered) scenario
+          self.use_fibers = false
+          block.call
+          self.use_fibers = true
+        end
       end
       
       def can_use_fibers?
