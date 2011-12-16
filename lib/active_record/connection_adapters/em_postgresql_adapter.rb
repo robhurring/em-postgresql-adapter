@@ -20,8 +20,7 @@ module ActiveRecord
         # should know about this but can't detect it there, so deal with it here.
         PostgreSQLColumn.money_precision = (postgresql_version >= 80300) ? 19 : 10
 
-        configure_connection
-        @connection.use_fibers!
+        @connection.bypass_fibers { configure_connection }
       end
 
       # Close then reopen the connection.
