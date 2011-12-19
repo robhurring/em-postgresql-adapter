@@ -19,4 +19,5 @@ Gem::Specification.new do |s|
   s.add_dependency('pg', '>= 0.8.0')
   s.add_dependency('activerecord', '>= 3.1.0')
   s.add_dependency('eventmachine')
+#  s.add_dependency('em-synchrony', '>= 1.x.x)
 end

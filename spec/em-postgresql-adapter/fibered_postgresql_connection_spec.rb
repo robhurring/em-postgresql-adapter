@@ -14,11 +14,37 @@ describe EM::DB::FiberedPostgresConnection, 'plain integration into active_recor
     ActiveRecord::Base.connection.should be_instance_of(ActiveRecord::ConnectionAdapters::EMPostgreSQLAdapter)
   end
 
+  it "returns the correct adapter_name" do
+    ActiveRecord::Base.connection.adapter_name.should == "EMPostgreSQL"
+  end
+
   it "can connect outside of eventmachine" do
     result = ActiveRecord::Base.connection.execute('SELECT 42')
     result.values.should == [['42']]
   end
 
+  context "no pool parameter in connection options" do
+    let(:no_pool_size_options) { database_connection_config.merge('pool' => nil) }
+
+    it "still connects" do
+      ActiveRecord::Base.establish_connection(no_pool_size_options)
+      ActiveRecord::Base.connection.should be_instance_of(ActiveRecord::ConnectionAdapters::EMPostgreSQLAdapter)
+    end
+
+    it "defaults to a connection pool size of 5" do
+      ActiveRecord::Base.establish_connection(no_pool_size_options)
+      
+      Fiber.new {
+        instance = EventMachine::Synchrony::ConnectionPool.new(:size => 0)
+        EventMachine::Synchrony::ConnectionPool.
+          should_receive(:new).
+          with(:size => 5).
+          and_return(instance)
+
+        ActiveRecord::Base.connection
+      }.resume
+    end
+  end
 end
 
 describe EM::DB::FiberedPostgresConnection, 'integration with active_record inside an event_machine context', :type => :eventmachine do
