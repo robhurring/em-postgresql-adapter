@@ -19,7 +19,7 @@ module ActiveRecord
         include EM::Synchrony::ActiveRecord::Client
       end
 
-      class ConnectionPool < EM::Synchrony::ConnectionPool
+      class ConnectionPool < EM::Synchrony::ActiveRecord::ConnectionPool
         # via method_missing async_exec will be recognized as async method
         def async_exec(*args, &blk)
           execute(false) do |conn|
@@ -31,7 +31,7 @@ module ActiveRecord
         def prepare(*args, &blk)
           # Prepare statement across all the connection instances in the pool
           # NOTE: how much of a performance hit will this cause on large pools (i.e. > 200)?)
-          [@available, @pending].flatten.each do |conn|
+          [connection, @available, @pending].flatten.each do |conn|
             conn.send(:prepare, *args, &blk)
           end
         end
