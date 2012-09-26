@@ -55,7 +55,7 @@ module ActiveRecord
       port     = config[:port] || 5432
       username = config[:username].to_s
       password = config[:password].to_s
-      poolsize = config[:pool] || DEFAULT_POOL_SIZE
+      poolsize = config[:pool] ? config[:pool].to_i : DEFAULT_POOL_SIZE
 
       if config.has_key?(:database)
         database = config[:database]
