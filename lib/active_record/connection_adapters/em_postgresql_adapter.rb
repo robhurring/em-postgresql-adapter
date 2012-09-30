@@ -48,9 +48,16 @@ module ActiveRecord
   class Base
     DEFAULT_POOL_SIZE = 5
 
+    def self.clean_config!(config)
+      if (config[:prepared_statements].kind_of? String)
+        config[:prepared_statements] = config[:prepared_statements] == "true"
+      end
+    end
+
     # Establishes a connection to the database that's used by all Active Record objects
     def self.em_postgresql_connection(config) # :nodoc:
       config = config.symbolize_keys
+      clean_config! config
       host     = config[:host]
       port     = config[:port] || 5432
       username = config[:username].to_s
