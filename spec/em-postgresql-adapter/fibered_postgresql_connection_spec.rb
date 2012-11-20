@@ -33,7 +33,7 @@ describe EM::DB::FiberedPostgresConnection, 'plain integration into active_recor
 
     it "defaults to a connection pool size of 5" do
       ActiveRecord::Base.establish_connection(no_pool_size_options)
-      
+
       Fiber.new {
         instance = EventMachine::Synchrony::ConnectionPool.new(:size => 0)
         EventMachine::Synchrony::ConnectionPool.
@@ -66,8 +66,8 @@ describe EM::DB::FiberedPostgresConnection, 'integration with active_record insi
   end
 
   it "can execute multiple queries on parallel fibers concurrently" do
-    start = Time.now
     results = []
+    start = Time.now
     em {
       Fiber.new {
         results << ActiveRecord::Base.connection.execute("SELECT pg_sleep(#{SLEEP_TIME}), 42").values
@@ -79,8 +79,9 @@ describe EM::DB::FiberedPostgresConnection, 'integration with active_record insi
         done if results.length == 2
       }.resume
     }
+    finish = Time.now
 
-    (Time.now - start).should be_within(SLEEP_TIME * 0.15).of(SLEEP_TIME)
+    (finish - start).should be_within(SLEEP_TIME * 0.25).of(SLEEP_TIME)
   end
 
 
@@ -98,12 +99,12 @@ describe EM::DB::FiberedPostgresConnection, 'integration with active_record insi
   end
 
   it "raises an error if not called inside a fiber" do
-    em {
-      expect {
+    expect {
+      em {
         ActiveRecord::Base.connection.execute('SELECT 42')
-      }.to raise_error(ActiveRecord::StatementInvalid, /FiberError/)
-      done
-    }
+        done
+      }
+    }.to raise_error(ActiveRecord::StatementInvalid, /FiberError/)
   end
 
 end
