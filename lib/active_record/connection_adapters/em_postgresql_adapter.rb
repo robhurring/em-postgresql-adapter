@@ -10,11 +10,11 @@ end
 module ActiveRecord
   module ConnectionAdapters
     class EMPostgreSQLAdapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-      
+
       def adapter_name
         'EMPostgreSQL'
       end
-      
+
       class Client < ::EM::DB::FiberedPostgresConnection
         include EM::Synchrony::ActiveRecord::Client
       end
@@ -27,7 +27,7 @@ module ActiveRecord
           end
         end
         alias_method :async_query, :async_exec
-        
+
         def prepare(*args, &blk)
           # Prepare statement across all the connection instances in the pool
           # NOTE: how much of a performance hit will this cause on large pools (i.e. > 200)?)
@@ -86,15 +86,15 @@ module ActiveRecord
         elsif @local_tz
           conn.exec("SET time zone '#{@local_tz}'")
         end
-        
+
         conn.exec("SET client_min_messages TO '#{config[:min_messages]}'") if config[:min_messages]
         conn.exec("SET schema_search_path TO '#{config[:schema_search_path]}'") if config[:schema_order]
-      
+
         # Use standard-conforming strings if available so we don't have to do the E'...' dance.
         conn.exec('SET standard_conforming_strings = on') rescue nil
 
         conn
-      end 
+      end
 
       # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
       # PostgreSQL 8.3 it has a fixed precision of 19. PostgreSQLColumn.extract_precision
