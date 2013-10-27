@@ -16,8 +16,8 @@ Gem::Specification.new do |s|
   ] + Dir['Rakefile',
     'README*',
     'LICENSE*'] & `git ls-files -z`.split("\0")
-  s.add_dependency('pg', '>= 0.8.0')
-  s.add_dependency('activerecord', '>= 3.1.0')
+  s.add_dependency('pg', '>= 0.17.0')
+  s.add_dependency('activerecord', '>= 4.0.0')
   s.add_dependency('eventmachine')
-#  s.add_dependency('em-synchrony', '>= 1.x.x)
+  s.add_dependency('em-synchrony', '>= 1.0.0')
 end
