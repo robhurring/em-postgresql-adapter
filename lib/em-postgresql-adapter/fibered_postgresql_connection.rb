@@ -4,10 +4,14 @@ require 'pg'
 
 module EM
   module DB
+    @main_thread = ::Thread.current
+    def self.use_eventmachine?
+      ::EM.reactor_running? && (::Thread.current == @main_thread)
+    end
+
     # Patching our PGConn-based class to wrap async_exec (alias for async_query) calls into Ruby Fibers
     # ActiveRecord 3.1 calls PGConn#async_exec and also PGConn#send_query_prepared (the latter hasn't been patched here yet -- see below)
     class FiberedPostgresConnection < PGconn
-
       module Watcher
         def initialize(client, deferrable)
           @client = client
@@ -41,7 +45,7 @@ module EM
       end
 
       def try_query_using_fibers(sql, *opts)
-        if ::EM.reactor_running?
+        if ::EM::DB.use_eventmachine?
           send_query_using_fibers(sql, *opts)
         else
           async_exec(sql, *opts)
